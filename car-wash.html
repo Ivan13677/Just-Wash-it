@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Just Clean it – Book a Doorstep Car Wash</title>
+<meta name="description" content="Register your car with Just Clean it for a doorstep exterior wash — our team comes to you.">
+<meta property="og:title" content="Just Clean it – Doorstep Car Wash">
+<meta property="og:description" content="Register your car and we'll come wash it at your address.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%97%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&family=Roboto+Mono:wght@600&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
+<style>
+  :root{
+    --ink:#12213B;
+    --cream:#F6F3EC;
+    --suds:#4FB8C4;
+    --suds-dark:#2E8F9B;
+    --amber:#E2A03F;
+    --moss:#5C8B62;
+    --charcoal:#2B2E33;
+    --line: rgba(18,33,59,0.18);
+  }
+  *{box-sizing:border-box;}
+  html, body{margin:0;background:#F6F3EC;min-height:100%;}
+  .app{
+    background:var(--cream);
+    min-height:100%;
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--charcoal);
+    padding:32px 16px 64px;
+  }
+  .shell{max-width:560px;margin:0 auto;}
+
+  .topbar{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .brand-block{display:flex;flex-direction:column;gap:3px;}
+  .brand-row{display:flex;align-items:center;gap:8px;}
+  .brand-icon{width:26px;height:26px;flex:0 0 auto;color:var(--suds-dark);}
+  .brand{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    font-size:28px;
+    color:var(--ink);
+    letter-spacing:0.2px;
+  }
+  .brand-tagline{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    font-weight:500;
+    color:rgba(43,46,51,0.6);
+  }
+  .tabs{display:flex;gap:6px;}
+  .tab-btn{
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:8px 14px;
+    border-radius:20px;
+    border:1.5px solid var(--line);
+    background:transparent;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .tab-btn.active{
+    background:var(--ink);
+    border-color:var(--ink);
+    color:var(--cream);
+  }
+
+  /* ---- Ticket-style registration card ---- */
+  .ticket{
+    position:relative;
+    background:#fff;
+    border-radius:6px;
+    border:1.5px solid var(--line);
+    padding:28px 28px 28px 34px;
+    box-shadow:0 1px 0 rgba(18,33,59,0.03);
+  }
+  .ticket::before{
+    content:"";
+    position:absolute;
+    left:14px;top:18px;bottom:18px;
+    border-left:2px dashed var(--line);
+  }
+  .ticket-head{margin-bottom:22px;}
+  .ticket-head h1{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:26px;
+    font-weight:700;
+    color:var(--ink);
+    margin:0 0 6px;
+  }
+  .ticket-head p{
+    margin:0;
+    font-size:14px;
+    line-height:1.5;
+    color:rgba(43,46,51,0.75);
+    max-width:38ch;
+  }
+
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .field input, .field textarea, .field select{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    padding:10px 12px;
+    border-radius:5px;
+    border:1.5px solid var(--line);
+    background:var(--cream);
+    color:var(--charcoal);
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{
+    outline:none;
+    border-color:var(--suds-dark);
+    background:#fff;
+  }
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:420px){.row2{grid-template-columns:1fr;}}
+
+  .slot-groups{display:flex;flex-direction:column;gap:14px;}
+  .slot-group-label{
+    font-size:11px;font-weight:700;color:rgba(43,46,51,0.55);
+    text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;
+  }
+  .slot-pills{display:flex;flex-wrap:wrap;gap:8px;}
+  .slot-pill{
+    border:1.5px solid var(--line);
+    background:#fff;
+    border-radius:999px;
+    padding:8px 14px;
+    font-size:13px;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+    color:var(--ink);
+    transition:background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }
+  .slot-pill:hover:not(.full){border-color:var(--ink);}
+  .slot-pill.selected{
+    background:var(--ink);
+    color:#fff;
+    border-color:var(--ink);
+  }
+  .slot-pill.full{
+    background:rgba(0,0,0,0.04);
+    color:rgba(43,46,51,0.35);
+    border-color:var(--line);
+    cursor:not-allowed;
+    text-decoration:line-through;
+  }
+  .slot-empty-msg{font-size:13px;color:rgba(43,46,51,0.6);}
+
+  #car-rows{display:flex;flex-direction:column;gap:12px;}
+  .car-row{display:flex;flex-direction:column;gap:4px;}
+  .car-row-fields{display:flex;gap:8px;align-items:center;}
+  .car-row-fields .car-type{flex:1.2;}
+  .car-row-fields .car-plate{flex:1;}
+  .car-row-fields .remove-car-row{
+    flex:0 0 auto;padding:9px 12px;font-size:16px;line-height:1;
+  }
+  .car-row-price{
+    font-size:12px;font-weight:600;color:var(--suds-dark);
+    padding-left:2px;min-height:14px;
+  }
+  .hint-text{font-size:12px;color:rgba(43,46,51,0.6);margin:8px 0 0;}
+
+  @media (max-width:480px){
+    .app{padding:20px 14px 48px;}
+    .brand{font-size:24px;}
+    .ticket{padding:20px 20px 20px 26px;}
+    .ticket-head h1, .dash-head h1, .pin-card h1{font-size:22px;}
+    .ticket-head p{font-size:15px;}
+    .field label{font-size:14px;}
+    .field input, .field textarea, .field select{font-size:17px;padding:13px 14px;}
+    .submit-btn{font-size:16px;padding:15px 16px;}
+    .job-name{font-size:17px;}
+    .job-meta, .job-detail{font-size:14.5px;}
+    .plate{font-size:14px;padding:3px 9px;}
+    .mini-btn{font-size:13px;padding:9px 14px;}
+    .notes-field{font-size:14px;padding:10px 12px;}
+    .confirm, .form-error{font-size:15px;}
+    .tab-btn{font-size:14px;padding:9px 15px;}
+    .filter-btn{font-size:13px;padding:7px 13px;}
+  }
+
+  .submit-btn{
+    width:100%;
+    margin-top:6px;
+    background:var(--suds-dark);
+    color:#fff;
+    border:none;
+    padding:13px 16px;
+    border-radius:5px;
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .submit-btn:hover{background:#26737d;}
+  .submit-btn:disabled{opacity:0.6;cursor:default;}
+
+  .confirm{
+    margin-top:18px;
+    padding:14px 16px;
+    border-radius:5px;
+    background:rgba(92,139,98,0.12);
+    border:1.5px solid rgba(92,139,98,0.4);
+    color:#3d6b43;
+    font-size:14px;
+  }
+  .confirm a.wa-link{
+    display:inline-block;
+    margin-top:10px;
+    background:#25D366;
+    color:#fff;
+    text-decoration:none;
+    font-weight:600;
+    font-size:13px;
+    padding:8px 14px;
+    border-radius:5px;
+  }
+  .form-error{
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:5px;
+    background:rgba(198,71,71,0.1);
+    border:1.5px solid rgba(198,71,71,0.35);
+    color:#a13c3c;
+    font-size:13px;
+  }
+
+  /* ---- Dashboard ---- */
+  .dash-head{margin-bottom:18px;}
+  .dash-head h1{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:26px;
+    font-weight:700;
+    color:var(--ink);
+    margin:0 0 4px;
+  }
+  .dash-head p{margin:0;font-size:13px;color:rgba(43,46,51,0.65);}
+  .live-dot{
+    display:inline-block;width:9px;height:9px;border-radius:50%;
+    background:#4FA362;margin-left:8px;vertical-align:middle;
+    animation:pulse-dot 1.6s infinite;
+  }
+  @keyframes pulse-dot{
+    0%{box-shadow:0 0 0 0 rgba(79,163,98,0.5);}
+    70%{box-shadow:0 0 0 8px rgba(79,163,98,0);}
+    100%{box-shadow:0 0 0 0 rgba(79,163,98,0);}
+  }
+
+  .filters{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .filter-btn{
+    font-size:12px;font-weight:600;
+    padding:6px 12px;border-radius:16px;
+    border:1.5px solid var(--line);
+    background:#fff;color:var(--ink);cursor:pointer;
+  }
+  .filter-btn.active{background:var(--ink);border-color:var(--ink);color:var(--cream);}
+
+  .empty{
+    padding:32px 20px;text-align:center;
+    color:rgba(43,46,51,0.6);
+    background:#fff;border:1.5px dashed var(--line);border-radius:6px;
+    font-size:14px;
+  }
+
+  .date-group{margin-bottom:18px;}
+  .date-group-header{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:0 2px 8px;
+    border-bottom:1.5px solid var(--line);
+    margin-bottom:10px;
+  }
+  .date-group-title{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;font-size:16px;color:var(--ink);
+    letter-spacing:0.3px;
+  }
+  .date-group-count{font-size:12px;color:rgba(43,46,51,0.6);font-weight:600;}
+
+  .job-card{
+    background:#fff;
+    border:1.5px solid var(--line);
+    border-left:5px solid var(--amber);
+    border-radius:6px;
+    padding:0;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  .job-card.job-washed{border-left-color:#4FA362;}
+  .job-summary{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:13px 16px;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .job-summary:hover{background:rgba(18,33,59,0.02);}
+  .job-summary-left{min-width:0;flex:1;}
+  .job-summary-name-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .job-summary-time{font-size:12px;color:rgba(43,46,51,0.6);margin-top:2px;}
+  .job-summary-right{display:flex;align-items:center;gap:10px;flex:0 0 auto;}
+  .chevron{
+    font-size:11px;color:rgba(43,46,51,0.45);
+    transition:transform 0.15s ease;
+    display:inline-block;
+  }
+  .job-card.expanded .chevron{transform:rotate(180deg);}
+  .job-details{padding:0 18px 16px;border-top:1px solid var(--line);}
+  .job-details .job-detail{margin-top:12px;}
+  .job-top{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+    margin-bottom:10px;
+  }
+  .job-name{font-weight:600;font-size:16px;color:var(--ink);}
+  .job-meta{font-size:13px;color:rgba(43,46,51,0.7);margin-top:2px;}
+  .plate{
+    display:inline-block;
+    font-family:'Roboto Mono',monospace;
+    font-weight:600;
+    font-size:13px;
+    letter-spacing:1px;
+    background:var(--cream);
+    border:2px solid var(--ink);
+    border-radius:4px;
+    padding:2px 8px;
+    color:var(--ink);
+  }
+  .job-price{
+    display:inline-block;
+    font-family:'Roboto Mono',monospace;
+    font-weight:600;
+    font-size:12px;
+    color:var(--suds-dark);
+  }
+  .status-badge{
+    font-size:11px;font-weight:600;
+    padding:4px 10px;border-radius:14px;
+    white-space:nowrap;
+  }
+  .status-pending{background:#F0A93B;color:#5A3A08;}
+  .status-done{background:#4FA362;color:#fff;}
+
+  .job-detail{font-size:14px;line-height:1.6;color:var(--charcoal);margin-bottom:10px;}
+  .job-detail b{color:var(--ink);}
+
+  .job-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .mini-btn{
+    font-size:12px;font-weight:600;
+    padding:7px 12px;border-radius:5px;
+    border:1.5px solid var(--line);
+    background:transparent;color:var(--ink);cursor:pointer;
+    text-decoration:none;
+    display:inline-block;
+  }
+  .mini-btn.primary{background:var(--suds-dark);border-color:var(--suds-dark);color:#fff;}
+  .mini-btn.danger{color:#a13c3c;border-color:rgba(161,60,60,0.35);}
+  .mini-btn.wa{background:#25D366;border-color:#25D366;color:#fff;}
+
+  .notes-field{
+    width:100%;font-family:'Inter',sans-serif;font-size:13px;
+    padding:8px 10px;border-radius:5px;border:1.5px solid var(--line);
+    background:var(--cream);margin-top:8px;resize:vertical;min-height:36px;
+  }
+
+  .loading{text-align:center;padding:40px 0;color:rgba(43,46,51,0.55);font-size:14px;}
+
+  /* ---- PIN gate ---- */
+  .pin-card{
+    background:#fff;border:1.5px solid var(--line);border-radius:6px;
+    padding:28px;text-align:center;
+  }
+  .pin-card h1{
+    font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700;
+    color:var(--ink);margin:0 0 6px;
+  }
+  .pin-card p{font-size:14px;color:rgba(43,46,51,0.7);margin:0 0 18px;}
+  .pin-input{
+    width:140px;margin:0 auto 14px;display:block;
+    text-align:center;font-size:22px;letter-spacing:6px;
+    padding:10px;border-radius:5px;border:1.5px solid var(--line);
+    background:var(--cream);
+  }
+  .pin-input:focus{outline:none;border-color:var(--suds-dark);background:#fff;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div id="global-error" style="display:none;position:fixed;top:0;left:0;right:0;background:#a13c3c;color:#fff;padding:10px 16px;font-family:'Inter',sans-serif;font-size:13px;z-index:9999;"></div>
+  <div class="shell" id="root">
+    <div class="loading">Loading…</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const errBanner = document.getElementById('global-error');
+  function showGlobalError(msg){
+    errBanner.style.display = 'block';
+    errBanner.textContent = 'App error: ' + msg;
+  }
+  window.addEventListener('error', (e) => showGlobalError(e.message));
+  window.addEventListener('unhandledrejection', (e) => showGlobalError(e.reason && e.reason.message ? e.reason.message : String(e.reason)));
+})();
+</script>
+
+<script>
+(function(){
+  const root = document.getElementById('root');
+  const TEAM_PIN = '2288';
+  const BUSINESS_NAME = 'Just Clean it';
+  const BUSINESS_PHONE = '010-2688762';
+  const CAR_TYPES = [
+    { value: 'Sedan', label: 'Sedan', price: 10 },
+    { value: 'Hatchback', label: 'Hatchback', price: 10 },
+    { value: 'SUV', label: 'SUV', price: 13 },
+    { value: '4x4', label: '4x4', price: 15 },
+    { value: '7 Seater', label: '7 Seater', price: 15 }
+  ];
+  function getCarTypePrice(carType){
+    const found = CAR_TYPES.find(t => t.value === carType);
+    return found ? found.price : 0;
+  }
+  function formatRM(amount){
+    return 'RM' + Number(amount||0).toFixed(2);
+  }
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCqzzAEP511HESm9YDZQVl1mCiPMqfRbrY",
+    authDomain: "care-clean-6f7fd.firebaseapp.com",
+    projectId: "care-clean-6f7fd",
+    storageBucket: "care-clean-6f7fd.firebasestorage.app",
+    messagingSenderId: "110851016018",
+    appId: "1:110851016018:web:125936c51aa166f1af268b"
+  };
+  let db = null;
+  let customersCollectionRef = null;
+  let payrollCollectionRef = null;
+  let fbInitError = '';
+  let unsubscribeSnapshot = null;
+  let unsubscribePayrollSnapshot = null;
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    try{ db.settings({ experimentalForceLongPolling: true }); }catch(se){}
+    customersCollectionRef = db.collection('carwash_customers');
+    payrollCollectionRef = db.collection('carwash_payroll');
+  }catch(e){
+    db = null;
+    fbInitError = e && e.message ? e.message : String(e);
+  }
+  const ROUTE_HASH = window.location.hash || '';
+  const ROUTE_SEARCH = window.location.search || '';
+  const STAFF_MODE = /staff|owner|dashboard|payroll/i.test(ROUTE_HASH) || /staff|owner|dashboard|payroll/i.test(ROUTE_SEARCH);
+  const INITIAL_TAB = /owner|payroll/i.test(ROUTE_HASH) ? 'payroll'
+    : /dashboard/i.test(ROUTE_HASH) ? 'dashboard'
+    : 'register';
+
+  let state = {
+    tab: INITIAL_TAB,
+    customers: [],
+    loaded: false,
+    filter: 'all',
+    submitting: false,
+    justSubmitted: false,
+    submitError: '',
+    dashError: '',
+    dashUnlocked: false,
+    pinError: '',
+    lastEntries: null,
+    live: false,
+    expandedIds: new Set(),
+    slotAvailabilityByDate: {},
+    formDraft: {
+      name: '', phone: '', address: '', date: '', slot: '',
+      cars: [{ carType: '', plate: '' }]
+    },
+    payroll: {
+      entries: [],
+      live: false,
+      error: '',
+      filterEmployee: 'all',
+      submitting: false,
+      submitError: '',
+      draft: { employee: '', date: todayStr(), amount: '', notes: '' }
+    }
+  };
+
+  function storageAvailable(){
+    return db !== null && customersCollectionRef !== null;
+  }
+
+  function normalizePlate(p){
+    return String(p||'').replace(/\s+/g,'').toUpperCase();
+  }
+
+  function toWhatsAppNumber(phone){
+    let digits = String(phone||'').replace(/\D/g,'');
+    if(digits.startsWith('60')) return digits;
+    if(digits.startsWith('0')) return '60' + digits.slice(1);
+    return '60' + digits;
+  }
+
+  function waLink(phone, message){
+    return 'https://wa.me/' + toWhatsAppNumber(phone) + '?text=' + encodeURIComponent(message);
+  }
+
+  function formatTimeLabel(totalMinutes){
+    let h = Math.floor(totalMinutes/60);
+    const m = totalMinutes%60;
+    const ampm = h>=12 ? 'PM':'AM';
+    let h12 = h%12; if(h12===0) h12=12;
+    return h12 + ':' + (m===0?'00':String(m).padStart(2,'0')) + ' ' + ampm;
+  }
+
+  function generateSlots(){
+    const SLOT_MINUTES = 60;
+    const morningStarts = [8, 9, 10, 11];
+    const afternoonStarts = [14, 15, 16, 17, 18];
+    const morning = morningStarts.map(h => formatTimeLabel(h*60) + ' - ' + formatTimeLabel(h*60 + SLOT_MINUTES));
+    const afternoon = afternoonStarts.map(h => formatTimeLabel(h*60) + ' - ' + formatTimeLabel(h*60 + SLOT_MINUTES));
+    return { morning, afternoon, all: morning.concat(afternoon) };
+  }
+  const SLOT_BLOCKS = generateSlots();
+  const TIME_SLOTS = SLOT_BLOCKS.all;
+  const SLOT_CAPACITY = 1;
+
+  function getBlockAndIndex(slotLabel){
+    let idx = SLOT_BLOCKS.morning.indexOf(slotLabel);
+    if(idx !== -1) return { block: 'morning', idx };
+    idx = SLOT_BLOCKS.afternoon.indexOf(slotLabel);
+    if(idx !== -1) return { block: 'afternoon', idx };
+    return null;
+  }
+
+  function todayStr(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  function isWeekend(dateStr){
+    if(!dateStr) return false;
+    const [y,m,d] = dateStr.split('-').map(Number);
+    const dow = new Date(y, m-1, d).getDay();
+    return dow === 0 || dow === 6;
+  }
+
+  function formatDateLabel(dateStr){
+    if(!dateStr) return '';
+    const [y,m,d] = dateStr.split('-').map(Number);
+    const dt = new Date(y, m-1, d);
+    return dt.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+  }
+
+  function toDateStr(dt){
+    return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+  }
+
+  function weekendsInMonth(year, month){
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const dates = [];
+    for(let day=1; day<=daysInMonth; day++){
+      const dt = new Date(year, month, day);
+      const dow = dt.getDay();
+      if(dow === 0 || dow === 6) dates.push(toDateStr(dt));
+    }
+    return dates;
+  }
+
+  function generateSelectableWeekends(){
+    const now = new Date();
+    const todayIso = toDateStr(now);
+    const daysInCurrentMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    const isLastWeekOfMonth = now.getDate() > daysInCurrentMonth - 7;
+
+    let dates = weekendsInMonth(now.getFullYear(), now.getMonth()).filter(ds => ds >= todayIso);
+
+    if(dates.length === 0 || isLastWeekOfMonth){
+      const nextMonthIdx = now.getMonth() + 1;
+      const year = nextMonthIdx > 11 ? now.getFullYear() + 1 : now.getFullYear();
+      const month = nextMonthIdx % 12;
+      const nextMonthDates = weekendsInMonth(year, month);
+      dates = Array.from(new Set([...dates, ...nextMonthDates])).sort();
+    }
+    return dates;
+  }
+  const UPCOMING_WEEKENDS = generateSelectableWeekends();
+  if(!state.formDraft.date && UPCOMING_WEEKENDS.length) state.formDraft.date = UPCOMING_WEEKENDS[0];
+
+  function formatDateOptionLabel(dateStr){
+    const [y,m,d] = dateStr.split('-').map(Number);
+    const dt = new Date(y, m-1, d);
+    return dt.toLocaleDateString(undefined, { weekday:'short', day:'numeric', month:'short' });
+  }
+
+  function monthYearLabel(dateStr){
+    const [y,m,d] = dateStr.split('-').map(Number);
+    return new Date(y, m-1, d).toLocaleDateString(undefined, { month:'long', year:'numeric' });
+  }
+
+  function renderDateOptions(d){
+    const groups = [];
+    let currentKey = null, currentGroup = null;
+    UPCOMING_WEEKENDS.forEach(ds => {
+      const key = ds.slice(0,7);
+      if(key !== currentKey){
+        currentKey = key;
+        currentGroup = { label: monthYearLabel(ds), items: [] };
+        groups.push(currentGroup);
+      }
+      currentGroup.items.push(ds);
+    });
+    return groups.map(g => `
+      <optgroup label="${g.label}">
+        ${g.items.map(ds => `<option value="${ds}" ${d.date===ds?'selected':''}>${formatDateOptionLabel(ds)}</option>`).join('')}
+      </optgroup>
+    `).join('');
+  }
+
+  async function fetchCustomersFromStorage(){
+    const snap = await customersCollectionRef.get();
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+
+  function subscribeToCustomers(){
+    state.dashError = '';
+    if(!storageAvailable()){
+      state.customers = [];
+      state.loaded = true;
+      state.live = false;
+      state.dashError = 'Could not connect to the database' + (fbInitError ? (': ' + fbInitError) : '. Check your internet connection and try refreshing.');
+      render();
+      return;
+    }
+    if(unsubscribeSnapshot){ unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+    unsubscribeSnapshot = customersCollectionRef.onSnapshot(
+      (snap) => {
+        state.customers = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        state.loaded = true;
+        state.live = true;
+        state.dashError = '';
+        render();
+      },
+      (err) => {
+        state.loaded = true;
+        state.live = false;
+        state.dashError = 'Could not load the customer list: ' + (err && err.message ? err.message : err);
+        render();
+      }
+    );
+  }
+
+  function subscribeToPayroll(){
+    state.payroll.error = '';
+    if(!storageAvailable()){
+      state.payroll.entries = [];
+      state.loaded = true;
+      state.payroll.live = false;
+      state.payroll.error = 'Could not connect to the database' + (fbInitError ? (': ' + fbInitError) : '. Check your internet connection and try refreshing.');
+      render();
+      return;
+    }
+    if(unsubscribePayrollSnapshot){ unsubscribePayrollSnapshot(); unsubscribePayrollSnapshot = null; }
+    unsubscribePayrollSnapshot = payrollCollectionRef.onSnapshot(
+      (snap) => {
+        state.payroll.entries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        state.loaded = true;
+        state.payroll.live = true;
+        state.payroll.error = '';
+        render();
+      },
+      (err) => {
+        state.loaded = true;
+        state.payroll.live = false;
+        state.payroll.error = 'Could not load the payroll list: ' + (err && err.message ? err.message : err);
+        render();
+      }
+    );
+  }
+
+  async function deletePayrollEntry(id){
+    await payrollCollectionRef.doc(id).delete();
+  }
+
+  function exportPayrollCSV(){
+    const headers = ['Employee','Date','Amount','Notes'];
+    const rows = state.payroll.entries.map(e => [e.employee, e.date, formatRM(e.amount||0), e.notes||'']
+      .map(v => '"' + String(v).replace(/"/g,'""') + '"').join(','));
+    const csv = [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'just-clean-it-payroll.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // Adds each new entry as its own document (batched into one atomic write).
+  // Returns the entries with their real Firestore doc ids attached.
+  async function addCustomerEntries(entries){
+    const batch = db.batch();
+    const withIds = entries.map(entry => {
+      const { id: tempId, ...data } = entry;
+      const docRef = customersCollectionRef.doc();
+      batch.set(docRef, data);
+      return { ...entry, id: docRef.id };
+    });
+    await batch.commit();
+    return withIds;
+  }
+
+  async function updateCustomerEntry(id, patch){
+    await customersCollectionRef.doc(id).update(patch);
+  }
+
+  async function deleteCustomerEntry(id){
+    await customersCollectionRef.doc(id).delete();
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[m]));
+  }
+
+  function exportCSV(){
+    const headers = ['Name','Phone','Car Type','Plate','Price','Booking Total','Address','Status','Notes'];
+    const rows = state.customers.map(c => [c.name, c.phone, c.carType, c.plate, formatRM(c.price||0), formatRM(c.bookingTotal||c.price||0), c.address, c.status, c.notes||'']
+      .map(v => '"' + String(v).replace(/"/g,'""') + '"').join(','));
+    const csv = [headers.join(','), ...rows].join('\r\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'care-and-clean-customers.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function render(){
+    if(!state.loaded){
+      root.innerHTML = '<div class="loading">Loading…</div>';
+      return;
+    }
+
+    const tabs = `
+      <div class="topbar">
+        <div class="brand-block">
+          <div class="brand-row">
+            <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 13l1.5-4.5A2 2 0 0 1 6.4 7h11.2a2 2 0 0 1 1.9 1.5L21 13"/>
+              <rect x="2.5" y="13" width="19" height="5" rx="1.5"/>
+              <circle cx="7" cy="18.5" r="1.5"/>
+              <circle cx="17" cy="18.5" r="1.5"/>
+            </svg>
+            <span class="brand">Just Clean it</span>
+          </div>
+          <div class="brand-tagline">Exterior washing only</div>
+        </div>
+        ${STAFF_MODE ? `
+        <div class="tabs">
+          <button class="tab-btn ${state.tab==='register'?'active':''}" data-tab="register">Register</button>
+          <button class="tab-btn ${state.tab==='dashboard'?'active':''}" data-tab="dashboard">Team dashboard</button>
+          <button class="tab-btn ${state.tab==='payroll'?'active':''}" data-tab="payroll">Payroll</button>
+        </div>` : ''}
+      </div>
+    `;
+
+    if(!STAFF_MODE){ state.tab = 'register'; }
+
+    let body;
+    if(state.tab === 'register'){
+      body = renderRegister();
+    }else if(!state.dashUnlocked){
+      body = renderPinGate();
+    }else if(state.tab === 'payroll'){
+      body = renderPayroll();
+    }else{
+      body = renderDashboard();
+    }
+
+    root.innerHTML = tabs + body;
+    attachHandlers();
+  }
+
+  function slotPillHtml(slot, d){
+    const date = d.date;
+    const counts = (date && state.slotAvailabilityByDate[date]) || {};
+    const used = counts[slot] || 0;
+    const isFull = used >= SLOT_CAPACITY;
+    const isSelected = d.slot === slot;
+    const startLabel = slot.split(' - ')[0];
+    return `<button type="button" class="slot-pill ${isSelected?'selected':''} ${isFull?'full':''}" data-slot="${slot}" ${isFull?'disabled':''} title="${slot}">${startLabel}</button>`;
+  }
+
+  function renderSlotGroup(label, slots, d){
+    if(!slots.length) return '';
+    return `
+      <div>
+        <div class="slot-group-label">${label}</div>
+        <div class="slot-pills">${slots.map(s => slotPillHtml(s, d)).join('')}</div>
+      </div>
+    `;
+  }
+
+  function wireSlotPills(){
+    const pills = root.querySelectorAll('.slot-pill');
+    pills.forEach(btn=>{
+      if(btn.disabled) return;
+      btn.onclick = () => {
+        pills.forEach(p => p.classList.remove('selected'));
+        btn.classList.add('selected');
+        state.formDraft.slot = btn.dataset.slot;
+      };
+    });
+  }
+
+  function updateSlotGroupsUI(){
+    const container = root.querySelector('#slot-groups');
+    if(!container) return;
+    container.innerHTML = renderSlotGroup('Morning', SLOT_BLOCKS.morning, state.formDraft) + renderSlotGroup('Afternoon', SLOT_BLOCKS.afternoon, state.formDraft);
+    wireSlotPills();
+  }
+
+  async function loadSlotAvailabilityForDate(date){
+    if(!date || state.slotAvailabilityByDate[date] || !storageAvailable()) return;
+    try{
+      const snap = await customersCollectionRef.where('date','==',date).get();
+      const counts = {};
+      snap.docs.forEach(doc => {
+        const c = doc.data();
+        counts[c.slot] = (counts[c.slot]||0) + 1;
+      });
+      state.slotAvailabilityByDate[date] = counts;
+      updateSlotGroupsUI();
+    }catch(e){
+      // Fail open: if we can't check availability, leave slots selectable rather than blocking registration.
+    }
+  }
+
+  function carRowHtml(idx, car){
+    car = car || { carType:'', plate:'' };
+    const price = car.carType ? getCarTypePrice(car.carType) : null;
+    return `
+      <div class="car-row" data-idx="${idx}">
+        <div class="car-row-fields">
+          <select class="car-type">
+            <option value="" ${!car.carType ? 'selected' : ''}>Select car type</option>
+            ${CAR_TYPES.map(t => `<option value="${t.value}" ${car.carType===t.value?'selected':''}>${t.label}</option>`).join('')}
+          </select>
+          <input class="car-plate" placeholder="Plate (e.g. WXY 1234)" value="${escapeHtml(car.plate)}">
+          <button type="button" class="mini-btn danger remove-car-row" title="Remove this car">&times;</button>
+        </div>
+        <div class="car-row-price">${price != null ? formatRM(price) : ''}</div>
+      </div>
+    `;
+  }
+
+  function renderRegister(){
+    const d = state.formDraft;
+    return `
+      <div class="ticket">
+        <div class="ticket-head">
+          <h1>Book your doorstep wash</h1>
+          <p>Leave your details and we'll come wash your car(s) at your address.</p>
+        </div>
+        <div id="reg-form">
+          <div class="field">
+            <label for="f-name">Full name</label>
+            <input id="f-name" placeholder="e.g. Aisyah Rahman" value="${escapeHtml(d.name)}">
+          </div>
+          <div class="field">
+            <label for="f-phone">Phone number</label>
+            <input id="f-phone" placeholder="e.g. 012-345 6789" value="${escapeHtml(d.phone)}">
+          </div>
+          <div class="field">
+            <label for="f-address">Address</label>
+            <textarea id="f-address" rows="3" placeholder="Full address for our team to find you">${escapeHtml(d.address)}</textarea>
+          </div>
+          <div class="field">
+            <label for="f-date">Preferred date (weekends only)</label>
+            <select id="f-date">
+              <option value="">Select a date</option>
+              ${renderDateOptions(d)}
+            </select>
+          </div>
+          <div class="field">
+            <label>Starting time</label>
+            <div class="slot-groups" id="slot-groups">
+              ${renderSlotGroup('Morning', SLOT_BLOCKS.morning, d)}
+              ${renderSlotGroup('Afternoon', SLOT_BLOCKS.afternoon, d)}
+            </div>
+          </div>
+          <div class="field">
+            <label>Cars to wash</label>
+            <div id="car-rows">${d.cars.map((c,i) => carRowHtml(i,c)).join('')}</div>
+            <button type="button" id="add-car-btn" class="filter-btn" style="margin-top:6px;">+ Add another car</button>
+            <p class="hint-text">Got more cars than fit in one slot? We'll automatically book them into the next available slot right after.</p>
+          </div>
+          <button type="button" id="submit-btn" class="submit-btn" ${state.submitting?'disabled':''}>
+            ${state.submitting ? 'Saving…' : 'Register'}
+          </button>
+          ${state.submitError ? `<div class="form-error">${escapeHtml(state.submitError)}</div>` : ''}
+          ${renderConfirmBlock()}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderConfirmBlock(){
+    if(!(state.justSubmitted && state.lastEntries && state.lastEntries.length)) return '';
+    const entries = state.lastEntries;
+    const total = entries[0].bookingTotal != null ? entries[0].bookingTotal : entries.reduce((s,e)=>s+(e.price||0),0);
+    const lineItems = entries.map(e =>
+      `${escapeHtml(e.plate)} (${escapeHtml(e.carType)}) — ${formatDateLabel(e.date)}, ${escapeHtml(e.slot)} — ${formatRM(e.price||0)}`
+    ).join('<br>');
+    const waMessage = `New registration for ${BUSINESS_NAME}:\nName: ${entries[0].name}\nPhone: ${entries[0].phone}\nAddress: ${entries[0].address}\nCars:\n`
+      + entries.map(e => `- ${e.carType} (${e.plate}) — ${formatDateLabel(e.date)}, ${e.slot} — ${formatRM(e.price||0)}`).join('\n')
+      + `\nTotal: ${formatRM(total)}`;
+    return `
+      <div class="confirm">
+        You're registered!<br>
+        ${lineItems}<br>
+        <b>Total: ${formatRM(total)}</b><br>
+        Our team will head to your address to wash your car(s).<br>
+        <a class="wa-link" target="_blank" rel="noopener" href="${waLink(BUSINESS_PHONE, waMessage)}">Notify team via WhatsApp</a>
+      </div>
+    `;
+  }
+
+  function renderPinGate(){
+    return `
+      <div class="pin-card">
+        <h1>Team access</h1>
+        <p>Enter the team PIN to view the dashboard.</p>
+        <input id="pin-input" class="pin-input" inputmode="numeric" maxlength="8" placeholder="PIN">
+        <button type="button" id="pin-submit" class="submit-btn" style="width:140px;margin:0 auto;">Unlock</button>
+        ${state.pinError ? `<div class="form-error" style="max-width:260px;margin-left:auto;margin-right:auto;">${escapeHtml(state.pinError)}</div>` : ''}
+      </div>
+    `;
+  }
+
+  function parseSlotStart(slotLabel){
+    if(!slotLabel) return 99999;
+    const m = slotLabel.match(/^(\d+):(\d+)\s*(AM|PM)/i);
+    if(!m) return 99999;
+    let h = parseInt(m[1],10);
+    const min = parseInt(m[2],10);
+    const ampm = m[3].toUpperCase();
+    if(ampm==='PM' && h!==12) h+=12;
+    if(ampm==='AM' && h===12) h=0;
+    return h*60+min;
+  }
+
+  function jobCardHtml(c){
+    const expanded = state.expandedIds.has(c.id);
+    const price = c.price != null ? c.price : getCarTypePrice(c.carType);
+    return `
+      <div class="job-card ${c.status==='done'?'job-washed':''} ${expanded?'expanded':''}" data-id="${c.id}">
+        <div class="job-summary" data-toggle-id="${c.id}">
+          <div class="job-summary-left">
+            <div class="job-summary-name-row">
+              <span class="job-name">${escapeHtml(c.name)}</span>
+              <span class="plate">${escapeHtml(c.plate)}</span>
+              <span class="job-price">${formatRM(price)}</span>
+            </div>
+            <div class="job-summary-time">${c.slot ? escapeHtml(c.slot) : ''}</div>
+          </div>
+          <div class="job-summary-right">
+            <span class="status-badge ${c.status==='done'?'status-done':'status-pending'}">${c.status==='done'?'Washed':'Pending'}</span>
+            <span class="chevron">&#9662;</span>
+          </div>
+        </div>
+        ${expanded ? `
+        <div class="job-details">
+          <div class="job-detail">
+            <b>Phone:</b> ${escapeHtml(c.phone)}<br>
+            ${c.date ? `<b>When:</b> ${formatDateLabel(c.date)}, ${escapeHtml(c.slot||'')}<br>` : ''}
+            <b>Car:</b> ${escapeHtml(c.carType)} — ${formatRM(price)}<br>
+            ${c.bookingTotal != null && c.bookingTotal !== price ? `<b>Booking total:</b> ${formatRM(c.bookingTotal)}<br>` : ''}
+            <b>Address:</b> ${escapeHtml(c.address)}
+          </div>
+          <textarea class="notes-field" data-id="${c.id}" placeholder="Notes for the team (e.g. gate code, best time to visit)">${escapeHtml(c.notes||'')}</textarea>
+          <div class="job-actions" style="margin-top:10px;">
+            <button class="mini-btn primary toggle-status" data-id="${c.id}">
+              ${c.status==='done' ? 'Mark as pending' : 'Mark as washed'}
+            </button>
+            <a class="mini-btn wa" target="_blank" rel="noopener" href="${waLink(c.phone, `Hi ${c.name}, this is ${BUSINESS_NAME}. Our team is on the way to wash your car at ${c.address}.`)}">WhatsApp</a>
+            <button class="mini-btn danger delete-entry" data-id="${c.id}">Remove</button>
+          </div>
+        </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  function groupByDate(list){
+    const groups = [];
+    let currentKey = null;
+    let currentGroup = null;
+    list.forEach(c => {
+      const key = c.date || '';
+      if(key !== currentKey){
+        currentKey = key;
+        currentGroup = { date: c.date || '', items: [] };
+        groups.push(currentGroup);
+      }
+      currentGroup.items.push(c);
+    });
+    return groups;
+  }
+
+  function renderDashboard(){
+    const list = state.customers
+      .filter(c => state.filter === 'all' ? true : c.status === state.filter)
+      .slice()
+      .sort((a,b) => {
+        const dateA = a.date || '9999-99-99';
+        const dateB = b.date || '9999-99-99';
+        if(dateA !== dateB) return dateA < dateB ? -1 : 1;
+        return parseSlotStart(a.slot) - parseSlotStart(b.slot);
+      });
+
+    const pendingCount = state.customers.filter(c=>c.status==='pending').length;
+
+    const groups = groupByDate(list);
+    const cards = groups.length ? groups.map(g => `
+      <div class="date-group">
+        <div class="date-group-header">
+          <span class="date-group-title">${g.date ? formatDateLabel(g.date) : 'No date set'}</span>
+          <span class="date-group-count">${g.items.length} car${g.items.length>1?'s':''}</span>
+        </div>
+        ${g.items.map(c => jobCardHtml(c)).join('')}
+      </div>
+    `).join('') : `<div class="empty">No customers here yet.</div>`;
+
+    return `
+      <div class="dash-head">
+        <h1>Team dashboard ${state.live ? '<span class="live-dot" title="Updating automatically"></span>' : ''}</h1>
+        <p>${state.customers.length} registered &middot; ${pendingCount} pending${state.live ? ' &middot; live updates on' : ''}</p>
+      </div>
+      ${state.dashError ? `<div class="form-error" style="margin-bottom:14px;">${escapeHtml(state.dashError)}</div>` : ''}
+      <div class="filters">
+        <button class="filter-btn ${state.filter==='all'?'active':''}" data-filter="all">All</button>
+        <button class="filter-btn ${state.filter==='pending'?'active':''}" data-filter="pending">Pending</button>
+        <button class="filter-btn ${state.filter==='done'?'active':''}" data-filter="done">Washed</button>
+        <button class="filter-btn" id="export-btn">Export CSV</button>
+        <button class="filter-btn" id="refresh-btn" style="margin-left:auto;">Refresh</button>
+      </div>
+      ${cards}
+    `;
+  }
+
+  function groupPayrollByDate(list){
+    const groups = [];
+    let currentKey = null;
+    let currentGroup = null;
+    list.forEach(e => {
+      const key = e.date || '';
+      if(key !== currentKey){
+        currentKey = key;
+        currentGroup = { date: e.date || '', items: [] };
+        groups.push(currentGroup);
+      }
+      currentGroup.items.push(e);
+    });
+    return groups;
+  }
+
+  function payrollRowHtml(e){
+    return `
+      <div class="job-card" data-id="${e.id}">
+        <div class="job-summary" style="cursor:default;">
+          <div class="job-summary-left">
+            <div class="job-summary-name-row">
+              <span class="job-name">${escapeHtml(e.employee)}</span>
+              <span class="job-price">${formatRM(e.amount)}</span>
+            </div>
+            ${e.notes ? `<div class="job-summary-time">${escapeHtml(e.notes)}</div>` : ''}
+          </div>
+          <div class="job-summary-right">
+            <button type="button" class="mini-btn danger delete-payroll" data-id="${e.id}">Remove</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderPayroll(){
+    const d = state.payroll.draft;
+    const entries = state.payroll.entries;
+    const employees = Array.from(new Set(entries.map(e => e.employee).filter(Boolean))).sort();
+    const filtered = entries.filter(e => state.payroll.filterEmployee === 'all' ? true : e.employee === state.payroll.filterEmployee);
+    const sorted = filtered.slice().sort((a,b) => {
+      const dateA = a.date || '';
+      const dateB = b.date || '';
+      if(dateA !== dateB) return dateA < dateB ? 1 : -1;
+      return (b.createdAt||0) - (a.createdAt||0);
+    });
+    const total = filtered.reduce((sum, e) => sum + Number(e.amount||0), 0);
+    const groups = groupPayrollByDate(sorted);
+    const cards = groups.length ? groups.map(g => `
+      <div class="date-group">
+        <div class="date-group-header">
+          <span class="date-group-title">${g.date ? formatDateLabel(g.date) : 'No date set'}</span>
+          <span class="date-group-count">${formatRM(g.items.reduce((sum,e)=>sum+Number(e.amount||0),0))}</span>
+        </div>
+        ${g.items.map(e => payrollRowHtml(e)).join('')}
+      </div>
+    `).join('') : `<div class="empty">No payments logged yet.</div>`;
+
+    return `
+      <div class="dash-head">
+        <h1>Employee payroll ${state.payroll.live ? '<span class="live-dot" title="Updating automatically"></span>' : ''}</h1>
+        <p>Log what each employee was paid after a day of washing.</p>
+      </div>
+      <div class="ticket" style="margin-bottom:20px;">
+        <div class="ticket-head">
+          <h1 style="font-size:19px;margin-bottom:2px;">Add a payment</h1>
+        </div>
+        <div class="field">
+          <label for="p-emp">Employee name</label>
+          <input id="p-emp" placeholder="e.g. Aiman" value="${escapeHtml(d.employee)}">
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="p-date">Date</label>
+            <input type="date" id="p-date" value="${escapeHtml(d.date)}">
+          </div>
+          <div class="field">
+            <label for="p-amount">Amount paid (RM)</label>
+            <input type="number" step="0.01" min="0" id="p-amount" placeholder="e.g. 60" value="${escapeHtml(d.amount)}">
+          </div>
+        </div>
+        <div class="field">
+          <label for="p-notes">Notes (optional)</label>
+          <input id="p-notes" placeholder="e.g. 5 cars washed" value="${escapeHtml(d.notes)}">
+        </div>
+        <button type="button" class="submit-btn" id="payroll-submit" ${state.payroll.submitting?'disabled':''}>${state.payroll.submitting?'Saving…':'Add payment'}</button>
+        ${state.payroll.submitError ? `<div class="form-error">${escapeHtml(state.payroll.submitError)}</div>` : ''}
+      </div>
+      ${state.payroll.error ? `<div class="form-error" style="margin-bottom:14px;">${escapeHtml(state.payroll.error)}</div>` : ''}
+      <div class="filters">
+        <button type="button" class="filter-btn payroll-filter ${state.payroll.filterEmployee==='all'?'active':''}" data-employee="all">All</button>
+        ${employees.map(name => `<button type="button" class="filter-btn payroll-filter ${state.payroll.filterEmployee===name?'active':''}" data-employee="${escapeHtml(name)}">${escapeHtml(name)}</button>`).join('')}
+        <button type="button" class="filter-btn" id="payroll-export-btn">Export CSV</button>
+        <button type="button" class="filter-btn" id="payroll-refresh-btn" style="margin-left:auto;">Refresh</button>
+      </div>
+      <div class="empty" style="text-align:left;padding:14px 16px;margin-bottom:14px;background:#fff;">
+        <b>Total${state.payroll.filterEmployee!=='all' ? ' for ' + escapeHtml(state.payroll.filterEmployee) : ' paid'}:</b> ${formatRM(total)}
+      </div>
+      ${cards}
+    `;
+  }
+
+  function attachHandlers(){
+    root.querySelectorAll('.tab-btn').forEach(btn=>{
+      btn.onclick = async () => {
+        state.tab = btn.dataset.tab;
+        state.justSubmitted=false;
+        state.submitError='';
+        state.pinError='';
+        if(state.tab === 'dashboard' && state.dashUnlocked){
+          state.loaded = false;
+          render();
+          subscribeToCustomers();
+          return;
+        }
+        if(state.tab === 'payroll' && state.dashUnlocked){
+          state.loaded = false;
+          render();
+          subscribeToPayroll();
+          return;
+        }
+        render();
+      };
+    });
+
+    // keep the shared fields synced to formDraft so re-renders (errors, saving state) don't wipe them
+    const nameEl = root.querySelector('#f-name');
+    const phoneEl = root.querySelector('#f-phone');
+    const addressEl = root.querySelector('#f-address');
+    const dateEl = root.querySelector('#f-date');
+    if(nameEl) nameEl.oninput = () => { state.formDraft.name = nameEl.value; };
+    if(phoneEl) phoneEl.oninput = () => { state.formDraft.phone = phoneEl.value; };
+    if(addressEl) addressEl.oninput = () => { state.formDraft.address = addressEl.value; };
+    if(dateEl) dateEl.onchange = () => {
+      state.formDraft.date = dateEl.value;
+      state.formDraft.slot = '';
+      updateSlotGroupsUI();
+      loadSlotAvailabilityForDate(state.formDraft.date);
+    };
+    wireSlotPills();
+
+    const carRowsContainer = root.querySelector('#car-rows');
+    function syncCarsDraftFromDOM(){
+      if(!carRowsContainer) return;
+      state.formDraft.cars = Array.from(carRowsContainer.querySelectorAll('.car-row')).map(row => ({
+        carType: row.querySelector('.car-type').value,
+        plate: row.querySelector('.car-plate').value
+      }));
+    }
+    function wireCarRowInputs(row){
+      const typeSelect = row.querySelector('.car-type');
+      typeSelect.onchange = () => {
+        syncCarsDraftFromDOM();
+        const priceEl = row.querySelector('.car-row-price');
+        if(priceEl) priceEl.textContent = typeSelect.value ? formatRM(getCarTypePrice(typeSelect.value)) : '';
+      };
+      row.querySelector('.car-plate').oninput = syncCarsDraftFromDOM;
+    }
+    function wireRemoveButton(btn){
+      btn.onclick = () => {
+        const rows = carRowsContainer.querySelectorAll('.car-row');
+        if(rows.length <= 1) return; // keep at least one row
+        btn.closest('.car-row').remove();
+        syncCarsDraftFromDOM();
+      };
+    }
+    if(carRowsContainer){
+      carRowsContainer.querySelectorAll('.car-row').forEach(row => {
+        wireCarRowInputs(row);
+        wireRemoveButton(row.querySelector('.remove-car-row'));
+      });
+    }
+    const addCarBtn = root.querySelector('#add-car-btn');
+    if(addCarBtn && carRowsContainer){
+      addCarBtn.onclick = () => {
+        const nextIdx = carRowsContainer.querySelectorAll('.car-row').length;
+        carRowsContainer.insertAdjacentHTML('beforeend', carRowHtml(nextIdx));
+        const newRow = carRowsContainer.lastElementChild;
+        wireCarRowInputs(newRow);
+        wireRemoveButton(newRow.querySelector('.remove-car-row'));
+        syncCarsDraftFromDOM();
+      };
+    }
+
+    function allocateSlots(startSlot, carCount, latest, date){
+      const info = getBlockAndIndex(startSlot);
+      if(!info) return { error: 'Please select a valid time slot.' };
+      const blockSlots = SLOT_BLOCKS[info.block];
+      let idx = info.idx;
+      let remaining = carCount;
+      const allocation = [];
+      while(remaining > 0){
+        if(idx >= blockSlots.length){
+          return { error: `Not enough consecutive slots to fit ${carCount} car(s) starting at ${startSlot} before the end of that time block. Please choose an earlier starting time or fewer cars.` };
+        }
+        const slot = blockSlots[idx];
+        const used = latest.filter(c => c.date === date && c.slot === slot).length;
+        const capLeft = SLOT_CAPACITY - used;
+        if(capLeft > 0){
+          const take = Math.min(capLeft, remaining);
+          allocation.push({ slot, count: take });
+          remaining -= take;
+        }else if(allocation.length === 0){
+          return { error: `That starting time is already fully booked. Please choose a different time or date.` };
+        }else{
+          return { error: `The ${slot} slot is already full, which blocks fitting all ${carCount} car(s) back-to-back from ${startSlot}. Please choose a different starting time or fewer cars.` };
+        }
+        idx++;
+      }
+      return { allocation };
+    }
+
+    const submitBtn = root.querySelector('#submit-btn');
+    if(submitBtn){
+      submitBtn.onclick = async () => {
+        state.justSubmitted = false;
+        const name = document.getElementById('f-name').value.trim();
+        const phone = document.getElementById('f-phone').value.trim();
+        const address = document.getElementById('f-address').value.trim();
+        const date = document.getElementById('f-date').value;
+        const slot = state.formDraft.slot;
+
+        const carRows = Array.from(root.querySelectorAll('#car-rows .car-row')).map(row => ({
+          carType: row.querySelector('.car-type').value.trim(),
+          plate: row.querySelector('.car-plate').value.trim()
+        }));
+
+        if(!name || !phone || !address || !date || !slot){
+          state.submitError = 'Please fill in your name, phone, address, date, and starting time.';
+          render();
+          return;
+        }
+        if(carRows.some(c => !c.carType || !c.plate)){
+          state.submitError = 'Please fill in the car type and plate for every car listed.';
+          render();
+          return;
+        }
+        if(!isWeekend(date)){
+          state.submitError = 'We only wash cars on Saturdays and Sundays — please pick a weekend date.';
+          render();
+          return;
+        }
+
+        // duplicate plates within this same submission
+        const platesInSubmission = carRows.map(c => normalizePlate(c.plate));
+        const dupWithinSubmission = platesInSubmission.some((p, i) => platesInSubmission.indexOf(p) !== i);
+        if(dupWithinSubmission){
+          state.submitError = 'You\'ve entered the same plate number twice — please check your car list.';
+          render();
+          return;
+        }
+
+        state.submitting = true;
+        state.submitError = '';
+        render();
+        try{
+          if(!storageAvailable()) throw new Error('Storage is not available' + (fbInitError ? (': ' + fbInitError) : '.'));
+          let latest = [];
+          try{
+            latest = await fetchCustomersFromStorage();
+          }catch(e){ latest = []; }
+
+          for(const c of carRows){
+            const dup = latest.find(x => normalizePlate(x.plate) === normalizePlate(c.plate));
+            if(dup){
+              state.submitting = false;
+              state.submitError = `Plate ${c.plate} is already registered under ${dup.name}.`;
+              render();
+              return;
+            }
+          }
+
+          const result = allocateSlots(slot, carRows.length, latest, date);
+          if(result.error){
+            state.submitting = false;
+            state.submitError = result.error;
+            render();
+            return;
+          }
+
+          const newEntries = [];
+          let carPointer = 0;
+          for(const group of result.allocation){
+            for(let i=0; i<group.count; i++){
+              const c = carRows[carPointer++];
+              newEntries.push({
+                id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+                name, phone, address, date,
+                slot: group.slot,
+                carType: c.carType,
+                plate: c.plate,
+                price: getCarTypePrice(c.carType),
+                status: 'pending',
+                notes: '',
+                createdAt: Date.now()
+              });
+            }
+          }
+          const bookingTotal = newEntries.reduce((sum, e) => sum + e.price, 0);
+          newEntries.forEach(e => { e.bookingTotal = bookingTotal; });
+
+          const savedEntries = await addCustomerEntries(newEntries);
+          const dayCounts = state.slotAvailabilityByDate[date] || (state.slotAvailabilityByDate[date] = {});
+          newEntries.forEach(e => { dayCounts[e.slot] = (dayCounts[e.slot] || 0) + 1; });
+          state.submitting = false;
+          state.justSubmitted = true;
+          state.lastEntries = savedEntries;
+          state.formDraft = { name:'', phone:'', address:'', date: UPCOMING_WEEKENDS[0] || '', slot:'', cars:[{carType:'',plate:''}] };
+          render();
+        }catch(err){
+          state.submitting = false;
+          state.submitError = 'Could not save your registration: ' + (err && err.message ? err.message : err);
+          render();
+        }
+      };
+    }
+
+    const pinSubmit = root.querySelector('#pin-submit');
+    const pinInput = root.querySelector('#pin-input');
+    if(pinSubmit && pinInput){
+      const tryUnlock = async () => {
+        if(pinInput.value === TEAM_PIN){
+          state.dashUnlocked = true;
+          state.pinError = '';
+          state.loaded = false;
+          render();
+          if(state.tab === 'payroll') subscribeToPayroll(); else subscribeToCustomers();
+        }else{
+          state.pinError = 'Incorrect PIN.';
+          render();
+        }
+      };
+      pinSubmit.onclick = tryUnlock;
+      pinInput.onkeydown = (e) => { if(e.key === 'Enter') tryUnlock(); };
+    }
+
+    root.querySelectorAll('.filter-btn').forEach(btn=>{
+      if(!btn.dataset.filter) return;
+      btn.onclick = () => { state.filter = btn.dataset.filter; render(); };
+    });
+
+    const refreshBtn = root.querySelector('#refresh-btn');
+    if(refreshBtn){
+      refreshBtn.onclick = () => { state.loaded = false; render(); subscribeToCustomers(); };
+    }
+
+    const exportBtn = root.querySelector('#export-btn');
+    if(exportBtn){
+      exportBtn.onclick = () => exportCSV();
+    }
+
+    root.querySelectorAll('.job-summary').forEach(summary=>{
+      summary.onclick = () => {
+        const id = summary.dataset.toggleId;
+        if(state.expandedIds.has(id)) state.expandedIds.delete(id);
+        else state.expandedIds.add(id);
+        render();
+      };
+    });
+
+    root.querySelectorAll('.toggle-status').forEach(btn=>{
+      btn.onclick = async () => {
+        const c = state.customers.find(x=>x.id===btn.dataset.id);
+        if(!c) return;
+        const prev = c.status;
+        c.status = c.status === 'done' ? 'pending' : 'done';
+        render();
+        try{ await updateCustomerEntry(c.id, { status: c.status }); }
+        catch(e){ c.status = prev; state.dashError = 'Could not save that change. Please try again.'; render(); }
+      };
+    });
+
+    root.querySelectorAll('.delete-entry').forEach(btn=>{
+      btn.onclick = async () => {
+        const removed = state.customers.find(x=>x.id===btn.dataset.id);
+        state.customers = state.customers.filter(x=>x.id!==btn.dataset.id);
+        render();
+        try{ await deleteCustomerEntry(btn.dataset.id); }
+        catch(e){ if(removed) state.customers.push(removed); state.dashError = 'Could not remove that entry. Please try again.'; render(); }
+      };
+    });
+
+    root.querySelectorAll('.notes-field').forEach(field=>{
+      field.onblur = async () => {
+        const c = state.customers.find(x=>x.id===field.dataset.id);
+        if(!c) return;
+        const prev = c.notes;
+        c.notes = field.value;
+        try{ await updateCustomerEntry(c.id, { notes: c.notes }); }
+        catch(e){ c.notes = prev; state.dashError = 'Could not save that note. Please try again.'; render(); }
+      };
+    });
+
+    // ---- Payroll tab ----
+    const pEmp = root.querySelector('#p-emp');
+    const pDate = root.querySelector('#p-date');
+    const pAmount = root.querySelector('#p-amount');
+    const pNotes = root.querySelector('#p-notes');
+    if(pEmp) pEmp.oninput = () => { state.payroll.draft.employee = pEmp.value; };
+    if(pDate) pDate.onchange = () => { state.payroll.draft.date = pDate.value; };
+    if(pAmount) pAmount.oninput = () => { state.payroll.draft.amount = pAmount.value; };
+    if(pNotes) pNotes.oninput = () => { state.payroll.draft.notes = pNotes.value; };
+
+    const payrollSubmit = root.querySelector('#payroll-submit');
+    if(payrollSubmit){
+      payrollSubmit.onclick = async () => {
+        const employee = (pEmp ? pEmp.value : state.payroll.draft.employee).trim();
+        const date = pDate ? pDate.value : state.payroll.draft.date;
+        const amountRaw = pAmount ? pAmount.value : state.payroll.draft.amount;
+        const notes = (pNotes ? pNotes.value : state.payroll.draft.notes).trim();
+        const amount = Number(amountRaw);
+
+        if(!employee || !date || amountRaw === '' || isNaN(amount) || amount < 0){
+          state.payroll.submitError = 'Please fill in the employee name, date, and a valid amount.';
+          render();
+          return;
+        }
+
+        state.payroll.submitting = true;
+        state.payroll.submitError = '';
+        render();
+        try{
+          if(!storageAvailable()) throw new Error('Storage is not available' + (fbInitError ? (': ' + fbInitError) : '.'));
+          await payrollCollectionRef.add({ employee, date, amount, notes, createdAt: Date.now() });
+          state.payroll.submitting = false;
+          state.payroll.draft = { employee: '', date, amount: '', notes: '' };
+          render();
+        }catch(err){
+          state.payroll.submitting = false;
+          state.payroll.submitError = 'Could not save this payment: ' + (err && err.message ? err.message : err);
+          render();
+        }
+      };
+    }
+
+    root.querySelectorAll('.payroll-filter').forEach(btn=>{
+      btn.onclick = () => { state.payroll.filterEmployee = btn.dataset.employee; render(); };
+    });
+
+    const payrollRefreshBtn = root.querySelector('#payroll-refresh-btn');
+    if(payrollRefreshBtn){
+      payrollRefreshBtn.onclick = () => { state.loaded = false; render(); subscribeToPayroll(); };
+    }
+
+    const payrollExportBtn = root.querySelector('#payroll-export-btn');
+    if(payrollExportBtn){
+      payrollExportBtn.onclick = () => exportPayrollCSV();
+    }
+
+    root.querySelectorAll('.delete-payroll').forEach(btn=>{
+      btn.onclick = async () => {
+        const removed = state.payroll.entries.find(x=>x.id===btn.dataset.id);
+        state.payroll.entries = state.payroll.entries.filter(x=>x.id!==btn.dataset.id);
+        render();
+        try{ await deletePayrollEntry(btn.dataset.id); }
+        catch(e){ if(removed) state.payroll.entries.push(removed); state.payroll.error = 'Could not remove that entry. Please try again.'; render(); }
+      };
+    });
+  }
+
+  state.loaded = true;
+  render();
+  loadSlotAvailabilityForDate(state.formDraft.date);
+})();
+</script>
+</body>
+</html>
